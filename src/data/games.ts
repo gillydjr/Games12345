@@ -11,8 +11,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.9,
     plays: "185K",
     color: "#f43f5e",
-    iframe: '<iframe src="/games/shooter.html" title="Neon Blaster Shooter" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/shooter.html"
+    iframe: '<iframe src="./games/shooter.html" title="Neon Blaster Shooter" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/shooter.html"
   },
   {
     id: "2048",
@@ -24,8 +24,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.9,
     plays: "1.2M",
     color: "#f59e0b",
-    iframe: '<iframe src="/games/2048.html" title="2048" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/2048.html"
+    iframe: '<iframe src="./games/2048.html" title="2048" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/2048.html"
   },
   {
     id: "snake",
@@ -37,8 +37,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.8,
     plays: "890K",
     color: "#10b981",
-    iframe: '<iframe src="/games/snake.html" title="Retro Snake" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/snake.html"
+    iframe: '<iframe src="./games/snake.html" title="Retro Snake" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/snake.html"
   },
   {
     id: "tetris",
@@ -50,8 +50,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.9,
     plays: "1.5M",
     color: "#06b6d4",
-    iframe: '<iframe src="/games/tetris.html" title="Block Fall Tetris" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/tetris.html"
+    iframe: '<iframe src="./games/tetris.html" title="Block Fall Tetris" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/tetris.html"
   },
   {
     id: "flappy",
@@ -63,8 +63,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.7,
     plays: "750K",
     color: "#38bdf8",
-    iframe: '<iframe src="/games/flappy.html" title="Flappy Wings" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/flappy.html"
+    iframe: '<iframe src="./games/flappy.html" title="Flappy Wings" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/flappy.html"
   },
   {
     id: "dino",
@@ -76,8 +76,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.8,
     plays: "2.1M",
     color: "#eab308",
-    iframe: '<iframe src="/games/dino.html" title="Chrome Dino Runner" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/dino.html"
+    iframe: '<iframe src="./games/dino.html" title="Chrome Dino Runner" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/dino.html"
   },
   {
     id: "space-invaders",
@@ -89,8 +89,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.7,
     plays: "620K",
     color: "#a855f7",
-    iframe: '<iframe src="/games/space-invaders.html" title="Space Defenders" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/space-invaders.html"
+    iframe: '<iframe src="./games/space-invaders.html" title="Space Defenders" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/space-invaders.html"
   },
   {
     id: "breakout",
@@ -102,12 +102,12 @@ export const defaultGames: GameItem[] = [
     rating: 4.6,
     plays: "540K",
     color: "#ec4899",
-    iframe: '<iframe src="/games/breakout.html" title="Brick Breaker" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/breakout.html"
+    iframe: '<iframe src="./games/breakout.html" title="Brick Breaker" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/breakout.html"
   },
   {
     id: "pong",
-    "title": "Classic Pong",
+    title: "Classic Pong",
     category: "Sports",
     description: "The grandfather of video games. Play solo vs AI or local 2-player showdown.",
     controls: "W/S for Player 1, Up/Down for Player 2 or Mouse",
@@ -115,8 +115,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.6,
     plays: "410K",
     color: "#3b82f6",
-    iframe: '<iframe src="/games/pong.html" title="Classic Pong" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/pong.html"
+    iframe: '<iframe src="./games/pong.html" title="Classic Pong" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/pong.html"
   },
   {
     id: "minesweeper",
@@ -128,8 +128,8 @@ export const defaultGames: GameItem[] = [
     rating: 4.7,
     plays: "380K",
     color: "#ef4444",
-    iframe: '<iframe src="/games/minesweeper.html" title="Minesweeper" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/minesweeper.html"
+    iframe: '<iframe src="./games/minesweeper.html" title="Minesweeper" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/minesweeper.html"
   },
   {
     id: "tower",
@@ -141,7 +141,7 @@ export const defaultGames: GameItem[] = [
     rating: 4.8,
     plays: "290K",
     color: "#0ea5e9",
-    iframe: '<iframe src="/games/tower.html" title="Tower Stack" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
-    url: "/games/tower.html"
+    iframe: '<iframe src="./games/tower.html" title="Tower Stack" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>',
+    url: "./games/tower.html"
   }
 ];

@@ -8,6 +8,7 @@ import { OSDesktop } from './components/OSDesktop';
 import { JsonViewerModal } from './components/JsonViewerModal';
 import { AddGameModal } from './components/AddGameModal';
 import { PanicCloakModal } from './components/PanicCloakModal';
+import { resolveUrl } from './utils/url';
 import { 
   Gamepad2, 
   Sparkles, 
@@ -46,9 +47,11 @@ export default function App() {
     }
   });
 
-  // Load games from /games.json on mount, then merge any locally added custom games
+  // Load games from games.json on mount, then merge any locally added custom games
   useEffect(() => {
-    fetch('/games.json')
+    const targetUrl = resolveUrl('games.json');
+    fetch(targetUrl)
+      .catch(() => fetch('./games.json'))
       .then(res => res.json())
       .then((data: GameItem[]) => {
         if (Array.isArray(data) && data.length > 0) {

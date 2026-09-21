@@ -14,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { GameItem, OSWindow } from '../types';
+import { resolveUrl } from '../utils/url';
 
 interface OSDesktopProps {
   games: GameItem[];
@@ -289,7 +290,7 @@ export const OSDesktop: React.FC<OSDesktopProps> = ({
             {/* Window Iframe Content */}
             <div className="relative flex-1 w-full h-full bg-slate-950 overflow-hidden">
               <iframe
-                src={game.url}
+                src={resolveUrl(game.url)}
                 title={game.title}
                 className="w-full h-full border-0"
                 allow="fullscreen; autoplay; gamepad"

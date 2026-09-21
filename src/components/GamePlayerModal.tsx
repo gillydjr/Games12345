@@ -12,6 +12,7 @@ import {
   Gamepad2
 } from 'lucide-react';
 import { GameItem } from '../types';
+import { resolveUrl } from '../utils/url';
 
 interface GamePlayerModalProps {
   game: GameItem | null;
@@ -53,7 +54,8 @@ export const GamePlayerModal: React.FC<GamePlayerModalProps> = ({
   // Extract src from iframe string or fallback to game.url
   const extractSrc = (iframeStr: string): string => {
     const match = iframeStr.match(/src=["']([^"']+)["']/i);
-    return match ? match[1] : (game.url || '');
+    const raw = match ? match[1] : (game.url || '');
+    return resolveUrl(raw);
   };
 
   const iframeSrc = extractSrc(game.iframe);
@@ -71,6 +73,7 @@ export const GamePlayerModal: React.FC<GamePlayerModalProps> = ({
 
   const handleOpenAboutBlank = () => {
     try {
+      const fullUrl = new URL(iframeSrc, window.location.href).href;
       const newWin = window.open('about:blank', '_blank');
       if (newWin) {
         newWin.document.write(`
@@ -84,13 +87,13 @@ export const GamePlayerModal: React.FC<GamePlayerModalProps> = ({
               </style>
             </head>
             <body>
-              <iframe src="${window.location.origin + iframeSrc}" allow="fullscreen; autoplay"></iframe>
+              <iframe src="${fullUrl}" allow="fullscreen; autoplay"></iframe>
             </body>
           </html>
         `);
         newWin.document.close();
       } else {
-        window.open(iframeSrc, '_blank');
+        window.open(fullUrl, '_blank');
       }
     } catch (e) {
       window.open(iframeSrc, '_blank');
