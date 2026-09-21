@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Dino Runner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
+    body { background: #090d16; color: #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 12px; overflow: hidden; }
+    .header { width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .title-box h1 { font-size: 28px; font-weight: 800; color: #f59e0b; line-height: 1; }
+    .title-box p { font-size: 13px; color: #94a3b8; }
+    .scores { display: flex; gap: 8px; }
+    .score-card { background: #1e293b; border: 1px solid #334155; padding: 6px 12px; border-radius: 8px; text-align: center; min-width: 65px; }
+    .score-label { font-size: 10px; text-transform: uppercase; color: #94a3b8; }
+    .score-value { font-size: 18px; font-weight: 700; color: #ffffff; }
+    .canvas-wrap { position: relative; width: 100%; max-width: 500px; height: 260px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 2px solid #334155; }
+    canvas { width: 100%; height: 100%; display: block; }
+    .overlay { position: absolute; inset: 0; background: rgba(9, 13, 22, 0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; backdrop-filter: blur(4px); }
+    .overlay h2 { font-size: 30px; font-weight: 800; color: #f8fafc; }
+    .overlay p { font-size: 14px; color: #94a3b8; }
+    .btn { background: #f59e0b; color: #451a03; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+    .btn:hover { background: #fbbf24; transform: translateY(-1px); }
+    .hint { margin-top: 10px; font-size: 12px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title-box">
+      <h1>Dino Runner</h1>
+      <p>Jump over cacti and birds!</p>
+    </div>
+    <div class="scores">
+      <div class="score-card">
+        <div class="score-label">Score</div>
+        <div class="score-value" id="score">0</div>
+      </div>
+      <div class="score-card">
+        <div class="score-label">Best</div>
+        <div class="score-value" id="best">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="gameCanvas" width="500" height="260"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlay-msg">T-Rex Run</h2>
+      <p id="overlay-sub">Press Space, Up, or Tap to jump / duck with Down</p>
+      <button class="btn" id="start-btn">Start Game</button>
+    </div>
+  </div>
+
+  <div class="hint">Controls: Space or Up to Jump | Down to Duck | Tap canvas</div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const overlay = document.getElementById('overlay');
+    const overlayMsg = document.getElementById('overlay-msg');
+    const overlaySub = document.getElementById('overlay-sub');
+    const startBtn = document.getElementById('start-btn');
+
+    let best = parseInt(localStorage.getItem('dino_best') || '0', 10);
+    bestEl.textContent = best;
+
+    let dino = {
+      x: 40,
+      y: 190,
+      w: 36,
+      h: 44,
+      vy: 0,
+      gravity: 0.85,
+      isGrounded: true,
+      ducking: false,
+      legFrame: 0
+    };
+
+    let groundY = 230;
+    let obstacles = [];
+    let clouds = [];
+    let speed = 5.5;
+    let score = 0;
+    let running = false;
+    let frame = 0;
+
+    // SFX
+    const audioCtx = window.AudioContext ? new (window.AudioContext || window.webkitAudioContext)() : null;
+    function playBeep(freq, type, dur) {
+      if (!audioCtx) return;
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch(e) {}
+    }
+
+    function initClouds() {
+      clouds = [
+        { x: 80, y: 40, w: 46, speed: 0.5 },
+        { x: 260, y: 70, w: 56, speed: 0.6 },
+        { x: 440, y: 35, w: 40, speed: 0.4 }
+      ];
+    }
+
+    function jump() {
+      if (!running) {
+        startGame();
+        return;
+      }
+      if (dino.isGrounded && !dino.ducking) {
+        dino.vy = -13.5;
+        dino.isGrounded = false;
+        playBeep(420, 'square', 0.08);
+      }
+    }
+
+    function startGame() {
+      dino.y = 190;
+      dino.vy = 0;
+      dino.isGrounded = true;
+      dino.ducking = false;
+      obstacles = [];
+      score = 0;
+      speed = 5.5;
+      frame = 0;
+      running = true;
+      overlay.style.display = 'none';
+      initClouds();
+    }
+
+    function gameOver() {
+      running = false;
+      playBeep(180, 'sawtooth', 0.25);
+      overlayMsg.textContent = 'Game Over!';
+      overlaySub.textContent = `Score: ${Math.floor(score)} | Best: ${best}`;
+      startBtn.textContent = 'Play Again';
+      overlay.style.display = 'flex';
+    }
+
+    function spawnObstacle() {
+      const type = (score > 120 && Math.random() < 0.35) ? 'pterodactyl' : 'cactus';
+      if (type === 'cactus') {
+        const isDouble = Math.random() < 0.4;
+        obstacles.push({
+          type: 'cactus',
+          x: canvas.width + 10,
+          y: groundY - 40,
+          w: isDouble ? 34 : 20,
+          h: 40
+        });
+      } else {
+        const heights = [groundY - 32, groundY - 55];
+        const flyY = heights[Math.floor(Math.random() * heights.length)];
+        obstacles.push({
+          type: 'pterodactyl',
+          x: canvas.width + 10,
+          y: flyY,
+          w: 38,
+          h: 24,
+          wingUp: false
+        });
+      }
+    }
+
+    function update() {
+      frame++;
+
+      // Clouds
+      clouds.forEach(c => {
+        c.x -= c.speed;
+        if (c.x + c.w < 0) c.x = canvas.width + 30;
+      });
+
+      if (!running) return;
+
+      score += 0.15;
+      speed = 5.5 + Math.min(6, score * 0.006);
+      scoreEl.textContent = Math.floor(score);
+      if (Math.floor(score) > best) {
+        best = Math.floor(score);
+        bestEl.textContent = best;
+        localStorage.setItem('dino_best', best.toString());
+      }
+
+      // Physics
+      dino.vy += dino.gravity;
+      dino.y += dino.vy;
+
+      const currentH = dino.ducking ? 26 : 44;
+      if (dino.y + currentH >= groundY) {
+        dino.y = groundY - currentH;
+        dino.vy = 0;
+        dino.isGrounded = true;
+      }
+
+      if (frame % 8 === 0) dino.legFrame = (dino.legFrame + 1) % 2;
+
+      // Obstacle spawner
+      const minGap = 80;
+      const lastObstacle = obstacles[obstacles.length - 1];
+      if (!lastObstacle || (canvas.width - lastObstacle.x > minGap + Math.random() * 160)) {
+        if (Math.random() < 0.035) {
+          spawnObstacle();
+        }
+      }
+
+      // Move & collide obstacles
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.x -= speed;
+
+        if (obs.type === 'pterodactyl' && frame % 12 === 0) {
+          obs.wingUp = !obs.wingUp;
+        }
+
+        // Collision check
+        const dW = dino.w - 8;
+        const dH = currentH - 4;
+        const dX = dino.x + 4;
+        const dY = dino.y + 2;
+
+        if (
+          dX < obs.x + obs.w - 4 &&
+          dX + dW > obs.x + 4 &&
+          dY < obs.y + obs.h - 2 &&
+          dY + dH > obs.y + 2
+        ) {
+          gameOver();
+          return;
+        }
+
+        if (obs.x + obs.w < 0) obstacles.splice(i, 1);
+      }
+    }
+
+    function render() {
+      // Sky
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Clouds
+      ctx.fillStyle = '#1e293b';
+      clouds.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+        ctx.arc(c.x + 10, c.y - 5, 14, 0, Math.PI * 2);
+        ctx.arc(c.x + 24, c.y, 11, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Ground Line
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(canvas.width, groundY);
+      ctx.stroke();
+
+      // Ground dots for speed sensation
+      ctx.fillStyle = '#475569';
+      for (let i = 0; i < 6; i++) {
+        const gx = ((canvas.width - (frame * speed + i * 90)) % canvas.width + canvas.width) % canvas.width;
+        ctx.fillRect(gx, groundY + 8, 12, 2);
+        ctx.fillRect((gx + 40) % canvas.width, groundY + 16, 8, 2);
+      }
+
+      // Obstacles
+      obstacles.forEach(obs => {
+        if (obs.type === 'cactus') {
+          ctx.fillStyle = '#10b981';
+          // Cactus stem
+          ctx.fillRect(obs.x + (obs.w > 20 ? 8 : 4), obs.y, 10, obs.h);
+          // Left arm
+          ctx.fillRect(obs.x, obs.y + 12, 6, 12);
+          ctx.fillRect(obs.x, obs.y + 8, 6, 8);
+          // Right arm
+          ctx.fillRect(obs.x + obs.w - 6, obs.y + 16, 6, 12);
+        } else {
+          // Pterodactyl
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(obs.x + 10, obs.y + 8, 20, 10); // body
+          ctx.fillRect(obs.x + 2, obs.y + 6, 10, 6); // head
+          // wings
+          if (obs.wingUp) {
+            ctx.beginPath();
+            ctx.moveTo(obs.x + 14, obs.y + 8);
+            ctx.lineTo(obs.x + 22, obs.y - 6);
+            ctx.lineTo(obs.x + 26, obs.y + 8);
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(obs.x + 14, obs.y + 16);
+            ctx.lineTo(obs.x + 22, obs.y + 26);
+            ctx.lineTo(obs.x + 26, obs.y + 16);
+            ctx.fill();
+          }
+        }
+      });
+
+      // Dino
+      ctx.fillStyle = '#f59e0b';
+      if (dino.ducking) {
+        // Ducking body
+        ctx.fillRect(dino.x, dino.y, 44, 22);
+        // Head
+        ctx.fillRect(dino.x + 36, dino.y + 2, 12, 14);
+        // Eye
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(dino.x + 42, dino.y + 4, 3, 3);
+      } else {
+        // Normal Body
+        ctx.fillRect(dino.x + 8, dino.y + 14, 22, 22);
+        // Head & snout
+        ctx.fillRect(dino.x + 18, dino.y, 18, 16);
+        ctx.fillRect(dino.x + 32, dino.y + 6, 6, 10);
+        // Eye
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(dino.x + 26, dino.y + 4, 3, 3);
+        // Little arm
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(dino.x + 26, dino.y + 22, 6, 4);
+        // Legs
+        if (dino.isGrounded) {
+          if (dino.legFrame === 0) {
+            ctx.fillRect(dino.x + 10, dino.y + 36, 4, 8);
+            ctx.fillRect(dino.x + 22, dino.y + 36, 6, 5);
+          } else {
+            ctx.fillRect(dino.x + 10, dino.y + 36, 6, 5);
+            ctx.fillRect(dino.x + 22, dino.y + 36, 4, 8);
+          }
+        } else {
+          ctx.fillRect(dino.x + 12, dino.y + 36, 4, 6);
+          ctx.fillRect(dino.x + 20, dino.y + 36, 4, 6);
+        }
+      }
+    }
+
+    function loop() {
+      update();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+        e.preventDefault();
+        jump();
+      }
+      if (['ArrowDown', 'KeyS'].includes(e.code)) {
+        e.preventDefault();
+        if (running && dino.isGrounded) {
+          dino.ducking = true;
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (['ArrowDown', 'KeyS'].includes(e.code)) {
+        dino.ducking = false;
+      }
+    });
+
+    document.getElementById('canvas-wrap').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      jump();
+    });
+
+    startBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      startGame();
+    });
+
+    initClouds();
+    loop();
+  </script>
+</body>
+</html>
